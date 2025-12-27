@@ -9,24 +9,87 @@ services:
     ports:
       - "127.0.0.1:9000:9000"
 
-    # Load environment variables from .env file (copy from .env.example)
-    env_file:
-      - .env
 
     environment:
-      # ASR_MODEL options: tiny, base, small, medium, large-v1, large-v2, large-v3, turbo
-      # English-only: tiny.en, base.en, small.en, medium.en
-      # Distilled (faster): distil-small.en, distil-medium.en, distil-large-v2, distil-large-v3
-      - ASR_MODEL=base
+      # ============================================================
+      # CORE SETTINGS
+      # ============================================================
       
-      # ASR_ENGINE options:
-      #   - openai_whisper: Original implementation, most accurate, slowest
-      #   - faster_whisper: 4-5x faster, lower VRAM, near-identical accuracy (recommended)
-      #   - whisperx: Adds speaker diarization & word-level timestamps, built on faster_whisper
+      # ASR_ENGINE - Whisper implementation to use
+      # Options:
+      #   - openai_whisper: Original OpenAI implementation, most accurate, slowest
+      #   - faster_whisper: 4-5x faster via CTranslate2, ~same accuracy (recommended)
+      #   - whisperx: Based on faster_whisper + speaker diarization & word timestamps
       - ASR_ENGINE=openai_whisper
       
-      # Custom model storage path (defaults to /root/.cache)
+      # ASR_MODEL - Model size/variant (larger = better accuracy but slower & more VRAM)
+      # Standard models: tiny, base, small, medium, large-v1, large-v2, large-v3, turbo
+      # English-only (.en better for small models): tiny.en, base.en, small.en, medium.en
+      # Distilled (faster, whisperx/faster_whisper only): distil-small.en, distil-medium.en, distil-large-v2, distil-large-v3
+      # Recommendations:
+      #   - Quick testing: tiny or base
+      #   - Production (English): turbo or distil-large-v3
+      #   - Best accuracy: large-v3
+      - ASR_MODEL=turbo
+      
+      # ASR_MODEL_PATH - Directory to store/load downloaded models
+      # Default: /root/.cache
+      # Set custom path to persist models between container rebuilds
       - ASR_MODEL_PATH=/data/models
+      
+      # ============================================================
+      # DEVICE & PERFORMANCE
+      # ============================================================
+      
+      # ASR_DEVICE - Compute device for inference
+      # Options: cuda (GPU) | cpu
+      # Default: cuda if available, else cpu
+      # Uncomment to force CPU mode:
+      # - ASR_DEVICE=cpu
+      
+      # ASR_QUANTIZATION - Model precision/quantization level
+      # Options:
+      #   - float32: Highest precision, slower (GPU default)
+      #   - float16: Balanced precision/speed, requires GPU
+      #   - int8: Fastest, lowest precision (CPU default)
+      # Uncomment to override:
+      # - ASR_QUANTIZATION=float16
+      
+      # MODEL_IDLE_TIMEOUT - Seconds of inactivity before unloading model from memory
+      # Default: 0 (never unload, keep model loaded)
+      # Set to free VRAM when idle (e.g., 300 = 5 minutes)
+      # Uncomment to enable:
+      # - MODEL_IDLE_TIMEOUT=300
+      
+      # SAMPLE_RATE - Audio sample rate in Hz
+      # Default: 16000 (16kHz, standard for speech-to-text)
+      # Usually no need to change
+      # - SAMPLE_RATE=16000
+      
+      # ============================================================
+      # WHISPERX-SPECIFIC OPTIONS
+      # ============================================================
+      
+      # HF_TOKEN - HuggingFace API token for diarization models
+      # Required only when using ASR_ENGINE=whisperx with diarization enabled
+      # Get token from: https://huggingface.co/settings/tokens
+      # Set in secrets.env file (copy from secrets.env.example)
+      # If using whisperx, be sure to run docker compose --env-file secrets.env up -d
+      - HF_TOKEN=${HF_TOKEN}
+      
+      # SUBTITLE_MAX_LINE_WIDTH - Max characters per subtitle line (whisperx only)
+      # Default: 1000
+      # Affects SRT/VTT subtitle formatting
+      # - SUBTITLE_MAX_LINE_WIDTH=1000
+      
+      # SUBTITLE_MAX_LINE_COUNT - Max lines per subtitle segment (whisperx only)
+      # Default: 2
+      # - SUBTITLE_MAX_LINE_COUNT=2
+      
+      # SUBTITLE_HIGHLIGHT_WORDS - Enable word-level highlighting in subtitles (whisperx only)
+      # Default: false
+      # Options: true | false
+      # - SUBTITLE_HIGHLIGHT_WORDS=false
 
     # Persist models and HuggingFace cache
     volumes:

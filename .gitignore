@@ -1,5 +1,5 @@
-# Environment variables (secrets)
-.env
+# Environment variables and secrets
+secrets.env
 
 # Data directory (models, cache, outputs)
 data/
