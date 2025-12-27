@@ -1,0 +1,44 @@
+# Whisper ASR service with GPU support and model caching
+
+services:
+  whisper-asr:
+    # GPU image: latest-gpu | CPU image: latest
+    image: onerahmet/openai-whisper-asr-webservice:latest-gpu
+
+    # Service accessible at http://localhost:9000
+    ports:
+      - "127.0.0.1:9000:9000"
+
+    # Load environment variables from .env file (copy from .env.example)
+    env_file:
+      - .env
+
+    environment:
+      # ASR_MODEL options: tiny, base, small, medium, large-v1, large-v2, large-v3, turbo
+      # English-only: tiny.en, base.en, small.en, medium.en
+      # Distilled (faster): distil-small.en, distil-medium.en, distil-large-v2, distil-large-v3
+      - ASR_MODEL=base
+      
+      # ASR_ENGINE options:
+      #   - openai_whisper: Original implementation, most accurate, slowest
+      #   - faster_whisper: 4-5x faster, lower VRAM, near-identical accuracy (recommended)
+      #   - whisperx: Adds speaker diarization & word-level timestamps, built on faster_whisper
+      - ASR_ENGINE=openai_whisper
+      
+      # Custom model storage path (defaults to /root/.cache)
+      - ASR_MODEL_PATH=/data/models
+
+    # Persist models and HuggingFace cache
+    volumes:
+      - ./data/models:/data/models
+      - ./data/huggingface:/root/.cache/huggingface
+
+    # GPU acceleration via NVIDIA runtime
+    # For CPU: remove this entire 'deploy' section and use 'latest' image instead of 'latest-gpu'
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

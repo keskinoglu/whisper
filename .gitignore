@@ -1,0 +1,17 @@
+# Environment variables (secrets)
+.env
+
+# Data directory (models, cache, outputs)
+data/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
