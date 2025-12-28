@@ -30,7 +30,7 @@ services:
       #   - Quick testing: tiny or base
       #   - Production (English): turbo or distil-large-v3
       #   - Best accuracy: large-v3
-      - ASR_MODEL=turbo
+      - ASR_MODEL=large-v3
       
       # ASR_MODEL_PATH - Directory to store/load downloaded models
       # Default: /root/.cache

@@ -13,7 +13,7 @@ from typing import Literal
 
 # Configuration
 API_URL = "http://localhost:9000/asr"
-VIDEOS_DIR = Path("data/videos")
+VIDEOS_DIR = Path("data/Aision Meetings")
 OUTPUT_DIR = Path("data/transcribed")
 
 # Transcription settings
